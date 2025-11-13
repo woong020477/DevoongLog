@@ -213,9 +213,15 @@ function getCategoryName(categoryId) {
 }
 
 function renderCategories() {
+  const categoryListEl = document.getElementById("categoryList");
+  if (!categoryListEl) {
+    console.error("카테고리 리스트 요소(#categoryList)를 찾지 못했습니다.");
+    return;
+  }
+
   categoryListEl.innerHTML = "";
 
-  // 전체
+  // 항상 "전체"는 추가
   const allItem = document.createElement("li");
   allItem.className =
     "category-item" + (state.currentCategoryId === "all" ? " active" : "");
@@ -227,41 +233,45 @@ function renderCategories() {
   });
   categoryListEl.appendChild(allItem);
 
-  // 실제 카테고리들
+  if (!Array.isArray(state.categories)) {
+    console.warn("state.categories가 배열이 아닙니다:", state.categories);
+    return;
+  }
+
+  // posts.json의 categories를 렌더링
   state.categories.forEach((cat) => {
     const li = document.createElement("li");
-    li.className =
-      "category-item" +
-      (state.currentCategoryId === cat.id ? " active" : "");
+    const isActive = state.currentCategoryId === cat.id;
 
+    li.className = "category-item" + (isActive ? " active" : "");
     li.innerHTML = `
       <span class="category-name">${cat.name}</span>
-      <div class="category-actions">
+      <div class="category-actions editor-only">
         <button class="icon-btn" data-action="edit">✎</button>
         <button class="icon-btn" data-action="delete">🗑</button>
       </div>
     `;
 
-    // 선택
+    // 카테고리 선택
     li.addEventListener("click", (e) => {
-      if (e.target.matches("button")) return;
+      if (e.target.matches("button")) return; // 편집/삭제 버튼 클릭은 패스
       state.currentCategoryId = cat.id;
       renderCategories();
       renderPostList();
     });
 
-    // 편집/삭제
+    // 편집 버튼
     const editBtn = li.querySelector('[data-action="edit"]');
-    const delBtn = li.querySelector('[data-action="delete"]');
-
     editBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       openCategoryForm(cat);
     });
 
-    delBtn.addEventListener("click", (e) => {
+    // 삭제 버튼
+    const delBtn = li.querySelector('[data-action="delete"]');
+    delBtn.addEventListener("click", async (e) => {
       e.stopPropagation();
-      deleteCategory(cat.id);
+      await deleteCategory(cat.id);
     });
 
     categoryListEl.appendChild(li);
