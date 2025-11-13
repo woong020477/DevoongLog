@@ -1,0 +1,17 @@
+{
+  "categories": [
+    { "id": "unity", "name": "Unity" },
+    { "id": "unreal", "name": "Unreal" },
+    { "id": "backend", "name": "Backend" },
+    { "id": "etc", "name": "기타" }
+  ],
+  "posts": [
+    {
+      "id": "post_example",
+      "title": "블로그를 시작하며",
+      "categoryId": "etc",
+      "contentHtml": "<p>이 블로그는 GitHub Pages + HTML/JS + File System Access API로 만든 개발 블로그입니다.</p><ul><li>카테고리를 만들어서 글을 정리하고,</li><li>리치 텍스트 에디터로 글을 작성하고,</li><li>로컬에서 <b>posts.json</b>을 직접 수정해서 저장합니다.</li></ul>",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}

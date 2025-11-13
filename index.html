@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Devoonglog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ===== 사이드바 (카테고리) ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">DevoongLog</div>
+      </div>
+
+      <section class="sidebar-section">
+        <div class="sidebar-section-header">
+          <h2>카테고리</h2>
+          <button id="addCategoryBtn" class="icon-btn editor-only" title="카테고리 추가">
+            +
+          </button>
+        </div>
+        <ul id="categoryList" class="category-list editor-only">
+          <!-- JS에서 렌더링 -->
+        </ul>
+
+        <!-- 카테고리 이름 입력 폼 -->
+        <div id="categoryForm" class="category-form hidden">
+          <input
+            type="text"
+            id="categoryNameInput"
+            placeholder="카테고리 이름"
+          />
+          <div class="form-row">
+            <button id="categorySaveBtn" class="primary-btn">저장</button>
+            <button id="categoryCancelBtn" class="outline-btn">취소</button>
+          </div>
+        </div>
+      </section>
+
+      <p class="hint-text">
+        이 블로그의 글/카테고리는 <strong>posts.json</strong> 파일에 저장됩니다.<br />
+        로컬에서 클론 후 <b>posts.json 연결</b> 후 저장하면되는 구조입니다.
+      </p>
+    </aside>
+
+    <!-- ===== 메인 영역 ===== -->
+    <main class="main">
+      <!-- 상단 헤더 -->
+      <header class="top-bar">
+        <div>
+          <h1 id="blogTitle">Dev웅log</h1>
+          <p class="subtitle">
+            Unity · Unreal · 게임 개발 기록 블로그
+          </p>
+        </div>
+
+        <div class="top-bar-actions">
+            <span id="fileStatusText" class="file-status">로컬 파일: 연결 안 됨</span>
+            <button id="connectFileBtn" class="outline-btn small-btn editor-only">
+                posts.json 연결
+            </button>
+            <button id="newPostBtn" class="primary-btn editor-only">
+                새 글 작성
+            </button>
+        </div>
+      </header>
+
+      <!-- 글 리스트 화면 -->
+      <section id="postListView" class="panel">
+        <div class="panel-header">
+          <h2 id="postListTitle">전체 글</h2>
+        </div>
+        <div id="postList" class="post-list">
+          <!-- JS에서 렌더링 -->
+        </div>
+        <p id="emptyPostMessage" class="empty-text hidden">
+          아직 작성된 글이 없습니다. <br />
+          <b>새 글 작성</b> 버튼을 눌러 첫 글을 만들어 보세요.
+        </p>
+      </section>
+
+      <!-- 글 작성/편집 화면 -->
+      <section id="postEditorView" class="panel hidden">
+        <div class="panel-header">
+          <h2 id="editorTitle">새 글 작성</h2>
+        </div>
+
+        <div class="form-group">
+          <label for="postTitleInput">제목</label>
+          <input type="text" id="postTitleInput" />
+        </div>
+
+        <div class="form-group">
+          <label for="postCategorySelect">카테고리</label>
+          <select id="postCategorySelect"></select>
+        </div>
+
+        <div class="form-group">
+          <label>내용</label>
+          <!-- 리치 텍스트 툴바 -->
+          <div id="editorToolbar" class="editor-toolbar">
+            <button type="button" class="toolbar-btn" data-command="bold">
+              B
+            </button>
+            <button type="button" class="toolbar-btn" data-command="italic">
+              I
+            </button>
+            <button type="button" class="toolbar-btn" data-command="underline">
+              U
+            </button>
+            <button type="button" class="toolbar-btn" data-command="strikeThrough">
+              S
+            </button>
+            <span class="toolbar-divider"></span>
+            <button type="button" class="toolbar-btn" data-command="justifyLeft">
+              ⬅
+            </button>
+            <button type="button" class="toolbar-btn" data-command="justifyCenter">
+              ⬌
+            </button>
+            <button type="button" class="toolbar-btn" data-command="justifyRight">
+              ➡
+            </button>
+            <span class="toolbar-divider"></span>
+            <button type="button" class="toolbar-btn" data-command="insertUnorderedList">
+              • 리스트
+            </button>
+            <button type="button" class="toolbar-btn" data-command="insertOrderedList">
+              1. 리스트
+            </button>
+            <span class="toolbar-divider"></span>
+            <label class="toolbar-label">
+              색상
+              <input type="color" id="toolbarColorInput" />
+            </label>
+            <button type="button" class="toolbar-btn" data-command="createLink">
+              링크
+            </button>
+            <button type="button" class="toolbar-btn" data-command="insertImage">
+              이미지
+            </button>
+          </div>
+
+          <!-- 리치 텍스트 에디터 -->
+          <div
+            id="postContentEditor"
+            class="rich-editor"
+            contenteditable="true"
+          ></div>
+        </div>
+
+        <div class="form-row">
+          <button id="postSaveBtn" class="primary-btn">저장 + posts.json 기록</button>
+          <button id="postCancelBtn" class="outline-btn">취소</button>
+        </div>
+      </section>
+
+      <!-- 글 상세 + 댓글 화면 -->
+      <section id="postDetailView" class="panel hidden">
+        <button id="backToListBtn" class="outline-btn small-btn">
+          ← 글 목록으로
+        </button>
+
+        <article class="post-detail">
+          <h2 id="detailTitle"></h2>
+          <div class="post-meta">
+            <span id="detailCategory"></span>
+            <span id="detailDate"></span>
+          </div>
+
+          <div id="detailContent" class="post-body"></div>
+
+          <div class="form-row editor-only">
+            <button id="detailEditBtn" class="outline-btn small-btn">
+              글 수정
+            </button>
+            <button id="detailDeleteBtn" class="danger-btn small-btn">
+              글 삭제
+            </button>
+          </div>
+        </article>
+
+        <!-- ===== GitHub ID 기반 댓글 영역 (giscus) ===== -->
+        <section class="comments-section">
+          <h3>댓글 (GitHub 로그인)</h3>
+          <p class="hint-text">
+            GitHub 계정으로 로그인해서 댓글을 남길 수 있습니다.
+            <br />
+            아래 giscus 설정 부분의 <code>data-repo</code> 등은 직접 수정해야
+            합니다.
+          </p>
+          <div id="giscusContainer"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
