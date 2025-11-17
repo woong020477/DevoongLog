@@ -2,8 +2,7 @@
   "categories": [
     { "id": "unity", "name": "Unity" },
     { "id": "unreal", "name": "Unreal" },
-    { "id": "backend", "name": "Backend" },
-    { "id": "etc", "name": "기타" }
+    { "id": "devlog", "name": "개발관련" }
   ],
   "posts": [
     {
