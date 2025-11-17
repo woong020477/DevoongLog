@@ -230,9 +230,7 @@ function renderCategories() {
     "category-item" + (state.currentCategoryId === "all" ? " active" : "");
   allItem.innerHTML = `<span class="category-name">전체</span>`;
   allItem.addEventListener("click", () => {
-    state.currentCategoryId = "all";
-    renderCategories();
-    renderPostList();
+    location.hash = "#category/all";
   });
   categoryListEl.appendChild(allItem);
 
@@ -258,9 +256,7 @@ function renderCategories() {
     // 카테고리 선택
     li.addEventListener("click", (e) => {
       if (e.target.matches("button")) return; // 편집/삭제 버튼 클릭은 패스
-      state.currentCategoryId = cat.id;
-      renderCategories();
-      renderPostList();
+      location.hash = `#category/${cat.id}`;
     });
 
     // 편집 버튼
@@ -384,7 +380,9 @@ function renderPostList() {
       <p class="post-excerpt">${excerpt}</p>
     `;
 
-    card.addEventListener("click", () => openPostDetail(post.id));
+    card.addEventListener("click", () => {
+      location.hash = `#post/${post.id}`;
+    });
 
     postListEl.appendChild(card);
   });
@@ -510,7 +508,9 @@ async function savePost() {
 
   await saveJsonToFile();
   renderPostList();
-  openPostDetail(state.editingPostId);
+
+  // 방금 저장한 글 상세로 이동 (라우터가 처리)
+  location.hash = `#post/${state.editingPostId}`;
 }
 
 async function deleteCurrentPost() {
@@ -524,7 +524,10 @@ async function deleteCurrentPost() {
 
   await saveJsonToFile();
   renderPostList();
-  showView("list");
+
+  // 현재 카테고리 목록으로 돌아가기
+  const catId = state.currentCategoryId || "all";
+  location.hash = `#category/${catId}`;
 }
 
 function closeEditor() {
@@ -626,6 +629,59 @@ function showView(view) {
   postDetailView.classList.toggle("hidden", view !== "detail");
 }
 
+// ===== 해시 기반 라우팅 =====
+
+// #category/devlog, #post/post_xxx 같은 해시를 파싱
+function getRouteFromHash() {
+  const raw = location.hash.replace(/^#/, "");
+  if (!raw) return { type: "category", id: "all" };
+
+  const [type, id] = raw.split("/");
+  return { type, id };
+}
+
+function handleHashChange() {
+  const { type, id } = getRouteFromHash();
+
+  if (type === "category") {
+    const catId = id || "all";
+    // 존재하지 않는 카테고리면 all로
+    if (
+      catId !== "all" &&
+      !state.categories.some((c) => c.id === catId)
+    ) {
+      state.currentCategoryId = "all";
+    } else {
+      state.currentCategoryId = catId;
+    }
+
+    renderCategories();
+    renderPostList();
+    showView("list");
+    return;
+  }
+
+  if (type === "post" && id) {
+    const post = state.posts.find((p) => p.id === id);
+    if (!post) {
+      // 없는 글이면 전체 목록으로
+      state.currentCategoryId = "all";
+      renderCategories();
+      renderPostList();
+      showView("list");
+      return;
+    }
+    openPostDetail(id);
+    return;
+  }
+
+  // 그 외(잘못된 해시)는 기본: 전체 글
+  state.currentCategoryId = "all";
+  renderCategories();
+  renderPostList();
+  showView("list");
+}
+
 // ===== 리치 텍스트 툴바 =====
 
 function setupEditorToolbar() {
@@ -686,7 +742,10 @@ function setupEventListeners() {
   postSaveBtn.addEventListener("click", () => savePost());
   postCancelBtn.addEventListener("click", () => closeEditor());
 
-  backToListBtn.addEventListener("click", () => showView("list"));
+  backToListBtn.addEventListener("click", () => {
+    const catId = state.currentCategoryId || "all";
+    location.hash = `#category/${catId}`;
+  });
   detailEditBtn.addEventListener("click", () => openEditorForEdit());
   detailDeleteBtn.addEventListener("click", () => deleteCurrentPost());
 
@@ -699,9 +758,12 @@ function setupEventListeners() {
 async function init() {
   await loadInitialState();
   setupEventListeners();
-  renderCategories();
-  renderPostList();
-  showView("list");
+
+  // 해시 라우팅 이벤트 등록
+  window.addEventListener("hashchange", handleHashChange);
+
+  // 첫 진입 시 현재 해시(#category/..., #post/...) 기준으로 화면 결정
+  handleHashChange();
 
   if (!isLocalDev) {
     // 외부 접속: 읽기 전용 모드
@@ -709,7 +771,8 @@ async function init() {
     fileStatusText.textContent = "";
   } else {
     // 로컬: 편집 가능 모드
-    fileStatusText.textContent = "로컬 편집 모드 (posts.json 연결 후 저장 가능)";
+    fileStatusText.textContent =
+      "로컬 편집 모드 (posts.json 연결 후 저장 가능)";
   }
 }
 
