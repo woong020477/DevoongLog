@@ -412,11 +412,11 @@ function loadGiscusForPost(post) {
   script.async = true;
   script.crossOrigin = "anonymous";
 
-  // ⚠️ 여기 값들은 giscus.app에서 본인 설정으로 교체해야 함
-  script.setAttribute("data-repo", "YOUR_GITHUB_ID/YOUR_REPO_NAME");
-  script.setAttribute("data-repo-id", "YOUR_REPO_ID");
+  // giscus.app 설정
+  script.setAttribute("data-repo", "woong020477/DevoongLog");
+  script.setAttribute("data-repo-id", "R_kgDOQUsjEg");
   script.setAttribute("data-category", "General");
-  script.setAttribute("data-category-id", "YOUR_CATEGORY_ID");
+  script.setAttribute("data-category-id", "DIC_kwDOQUsjEs4Cx4Ih");
 
   script.setAttribute("data-mapping", "specific");
   script.setAttribute("data-term", `post-${post.id}`);
