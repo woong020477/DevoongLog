@@ -12,7 +12,10 @@ let state = {
   currentCategoryId: "all",
   editingPostId: null,
 };
+// 이미지 저장용
+let imagesDirHandle = null;
 
+// 파일 저장용
 let fileHandle = null;
 
 // ===== DOM 참조 =====
@@ -529,6 +532,92 @@ function closeEditor() {
   showView("list");
 }
 
+// 이미지 폴더 선택 (처음 한 번만)
+async function ensureImagesDirHandle() {
+  if (imagesDirHandle) return imagesDirHandle;
+
+  if (!window.showDirectoryPicker) {
+    alert("이 브라우저에서는 로컬 이미지 저장(Directory Picker)을 지원하지 않습니다.");
+    return null;
+  }
+
+  alert(
+    "이미지를 저장할 폴더를 선택해주세요.\n" +
+      "보통 이 레포 루트 안의 images (또는 img) 폴더를 선택하면 됩니다."
+  );
+
+  try {
+    imagesDirHandle = await window.showDirectoryPicker();
+    return imagesDirHandle;
+  } catch (e) {
+    console.warn("이미지 폴더 선택 취소/실패:", e);
+    return null;
+  }
+}
+
+// 실제로 이미지 파일을 복사해서 삽입
+async function insertImageFromLocalFile() {
+  // File System Access 지원 안 되는 브라우저 대비
+  if (!window.showOpenFilePicker || !window.showDirectoryPicker) {
+    const url = prompt("이 브라우저에서는 파일 업로드를 지원하지 않습니다.\n이미지 URL을 직접 입력해주세요.");
+    if (url) {
+      postContentEditor.focus();
+      document.execCommand("insertImage", false, url);
+    }
+    return;
+  }
+
+  // 이미지 폴더 선택 (images / img 등)
+  const dirHandle = await ensureImagesDirHandle();
+  if (!dirHandle) return;
+
+  try {
+    // 업로드할 이미지 파일 선택
+    const [fileHandle] = await window.showOpenFilePicker({
+      types: [
+        {
+          description: "Images",
+          accept: {
+            "image/*": [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg"],
+          },
+        },
+      ],
+      excludeAcceptAllOption: false,
+      multiple: false,
+    });
+
+    if (!fileHandle) return;
+
+    const file = await fileHandle.getFile();
+    const arrayBuffer = await file.arrayBuffer();
+
+    // 파일명: 타임스탬프_원본이름 형태로 저장 (이름 중복 방지)
+    const timeStamp = Date.now();
+    const safeName = file.name.replace(/[^a-zA-Z0-9_\-.]/g, "_");
+    const newFileName = `${timeStamp}_${safeName}`;
+
+    // 선택한 폴더에 새 파일로 쓰기
+    const newFileHandle = await dirHandle.getFileHandle(newFileName, {
+      create: true,
+    });
+    const writable = await newFileHandle.createWritable();
+    await writable.write(arrayBuffer);
+    await writable.close();
+
+    // index.html 기준 상대 경로: "폴더이름/파일명"
+    // showDirectoryPicker로 고른 폴더 이름을 그대로 사용
+    const folderName = dirHandle.name; // 예: images
+    const relativeUrl = `${folderName}/${newFileName}`;
+
+    // 에디터에 <img src="..."> 삽입
+    postContentEditor.focus();
+    document.execCommand("insertImage", false, relativeUrl);
+  } catch (e) {
+    console.error("이미지 파일 선택/저장 중 오류:", e);
+    alert("이미지 파일을 저장하는 중 오류가 발생했습니다.");
+  }
+}
+
 // ===== 뷰 전환 =====
 
 function showView(view) {
@@ -558,9 +647,16 @@ function setupEditorToolbar() {
     }
 
     if (cmd === "insertImage") {
-      const url = prompt("이미지 URL을 입력하세요 (https://...)");
-      if (url) {
-        document.execCommand("insertImage", false, url);
+      // 로컬 개발 환경에서는 이미지 파일을 레포에 바로 저장
+      if (isLocalDev) {
+        insertImageFromLocalFile();
+      } else {
+        // GitHub Pages 등 외부에서는 기존처럼 URL 입력만 허용
+        const url = prompt("이미지 URL을 입력하세요 (https://...)");
+        if (url) {
+          postContentEditor.focus();
+          document.execCommand("insertImage", false, url);
+        }
       }
       return;
     }
