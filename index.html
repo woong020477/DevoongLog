@@ -40,8 +40,7 @@
       </section>
 
       <p class="hint-text">
-        이 블로그의 글/카테고리는 <strong>posts.json</strong> 파일에 저장됩니다.<br />
-        로컬에서 클론 후 <b>posts.json 연결</b> 후 저장하면되는 구조입니다.
+        크롬 외 브라우저로 접속 시 카테고리가 보이지 않는다면 <strong>← 글 목록으로</strong> 버튼을 눌러주세요.
       </p>
     </aside>
 
@@ -76,8 +75,7 @@
           <!-- JS에서 렌더링 -->
         </div>
         <p id="emptyPostMessage" class="empty-text hidden">
-          아직 작성된 글이 없습니다. <br />
-          <b>새 글 작성</b> 버튼을 눌러 첫 글을 만들어 보세요.
+          아직 작성된 글이 없습니다. <br/>
         </p>
       </section>
 
@@ -101,6 +99,7 @@
           <label>내용</label>
           <!-- 리치 텍스트 툴바 -->
           <div id="editorToolbar" class="editor-toolbar">
+            <!-- 기본 텍스트 스타일 -->
             <button type="button" class="toolbar-btn" data-command="bold">
               B
             </button>
@@ -113,7 +112,10 @@
             <button type="button" class="toolbar-btn" data-command="strikeThrough">
               S
             </button>
+
             <span class="toolbar-divider"></span>
+
+            <!-- 정렬 -->
             <button type="button" class="toolbar-btn" data-command="justifyLeft">
               ⬅
             </button>
@@ -123,18 +125,60 @@
             <button type="button" class="toolbar-btn" data-command="justifyRight">
               ➡
             </button>
+
             <span class="toolbar-divider"></span>
+
+            <!-- 리스트 -->
             <button type="button" class="toolbar-btn" data-command="insertUnorderedList">
               • 리스트
             </button>
             <button type="button" class="toolbar-btn" data-command="insertOrderedList">
               1. 리스트
             </button>
+
             <span class="toolbar-divider"></span>
+
+            <!-- 글자 크기 -->
             <label class="toolbar-label">
-              색상
-              <input type="color" id="toolbarColorInput" />
+              글자 크기
+              <select id="toolbarFontSize">
+                <option value="">기본</option>
+                <option value="1">12px</option>
+                <option value="2">14px</option>
+                <option value="3">16px</option>
+                <option value="4">18px</option>
+                <option value="5">20px</option>
+                <option value="6">24px</option>
+                <option value="7">28px</option>
+              </select>
             </label>
+
+            <span class="toolbar-divider"></span>
+
+            <!-- 색상 프리셋 -->
+            <span class="toolbar-label">
+              색상
+              <div id="toolbarColorPalette" class="color-palette">
+                <!-- 대충 15개 정도 프리셋 -->
+                <button type="button" class="color-swatch" data-color="#ffffff" title="흰색"></button>
+                <button type="button" class="color-swatch" data-color="#ff4b4b" title="빨강"></button>
+                <button type="button" class="color-swatch" data-color="#ff8a3c" title="주황"></button>
+                <button type="button" class="color-swatch" data-color="#ffd93b" title="노랑"></button>
+                <button type="button" class="color-swatch" data-color="#7bd88f" title="연두"></button>
+                <button type="button" class="color-swatch" data-color="#10a37f" title="초록"></button>
+                <button type="button" class="color-swatch" data-color="#3fa9f5" title="파랑"></button>
+                <button type="button" class="color-swatch" data-color="#7b5cff" title="남색"></button>
+                <button type="button" class="color-swatch" data-color="#c678ff" title="보라"></button>
+                <button type="button" class="color-swatch" data-color="#ff6ac1" title="핑크"></button>
+                <button type="button" class="color-swatch" data-color="#ffa7a7" title="살구"></button>
+                <button type="button" class="color-swatch" data-color="#a0a0b8" title="회색"></button>
+                <button type="button" class="color-swatch" data-color="#000000" title="검정"></button>
+              </div>
+            </span>
+
+            <span class="toolbar-divider"></span>
+
+            <!-- 링크 / 이미지 -->
             <button type="button" class="toolbar-btn" data-command="createLink">
               링크
             </button>

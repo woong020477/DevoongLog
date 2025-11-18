@@ -48,7 +48,8 @@ const postTitleInput = document.getElementById("postTitleInput");
 const postCategorySelect = document.getElementById("postCategorySelect");
 const postContentEditor = document.getElementById("postContentEditor");
 const editorToolbarEl = document.getElementById("editorToolbar");
-const toolbarColorInput = document.getElementById("toolbarColorInput");
+const toolbarFontSize = document.getElementById("toolbarFontSize");
+const toolbarColorPalette = document.getElementById("toolbarColorPalette");
 const postSaveBtn = document.getElementById("postSaveBtn");
 const postCancelBtn = document.getElementById("postCancelBtn");
 
@@ -685,6 +686,7 @@ function handleHashChange() {
 // ===== 리치 텍스트 툴바 =====
 
 function setupEditorToolbar() {
+  // 버튼들(B, I, 정렬, 리스트, 링크, 이미지)
   editorToolbarEl.addEventListener("click", (e) => {
     const btn = e.target.closest(".toolbar-btn");
     if (!btn) return;
@@ -720,10 +722,31 @@ function setupEditorToolbar() {
     document.execCommand(cmd, false, null);
   });
 
-  toolbarColorInput.addEventListener("input", () => {
-    postContentEditor.focus();
-    document.execCommand("foreColor", false, toolbarColorInput.value);
-  });
+  // 글자 크기 선택 (1~7 → 나중에 CSS로 px 매핑)
+  if (toolbarFontSize) {
+    toolbarFontSize.addEventListener("change", () => {
+      const value = toolbarFontSize.value;
+      postContentEditor.focus();
+      if (!value) {
+        // "기본" 선택 시에는 그냥 아무 것도 안 함 (기존 크기 유지)
+        return;
+      }
+      document.execCommand("fontSize", false, value);
+    });
+  }
+
+  // 색상 프리셋 클릭
+  if (toolbarColorPalette) {
+    toolbarColorPalette.addEventListener("click", (e) => {
+      const swatch = e.target.closest(".color-swatch");
+      if (!swatch) return;
+      const color = swatch.dataset.color;
+      if (!color) return;
+
+      postContentEditor.focus();
+      document.execCommand("foreColor", false, color);
+    });
+  }
 }
 
 // ===== 이벤트 =====

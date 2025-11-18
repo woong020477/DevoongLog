@@ -435,13 +435,42 @@ button {
   gap: 4px;
 }
 
-#toolbarColorInput {
-  width: 24px;
-  height: 18px;
+/* 색상 프리셋 / 글자 크기 드롭다운 */
+
+.toolbar-label select {
+  background: #050509;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--text-main);
+  font-size: 12px;
+  padding: 3px 6px;
+}
+
+.toolbar-label select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(16, 163, 127, 0.6);
+}
+
+.color-palette {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
   padding: 0;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: transparent;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.color-swatch:hover {
+  transform: translateY(-0.5px);
+  border-color: var(--accent);
 }
 
 /* 실제 글 작성 영역 */
@@ -462,6 +491,27 @@ button {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 1px rgba(16, 163, 127, 0.6);
+}
+
+/* 에디터 / 본문 이미지 – 컨테이너를 넘지 않도록 */
+
+.rich-editor img,
+.post-body img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 12px auto;
+}
+
+/* 리스트 스타일 – 가운데 정렬 등 텍스트 정렬에 잘 따라오도록 */
+
+.rich-editor ul,
+.rich-editor ol,
+.post-body ul,
+.post-body ol {
+  margin: 0.4em 0;
+  padding-left: 1.4em;
+  list-style-position: inside; /* 글자 정렬과 같이 움직이도록 */
 }
 
 /* ===== 글 상세 ===== */
@@ -530,4 +580,46 @@ button {
   .main {
     padding: 16px;
   }
+  .rich-editor img,
+  .post-body img {
+    max-height: 75vh;
+    object-fit: contain;
+  }
+}
+
+/* fontSize(1~7) → px 매핑 (에디터 + 본문 공통) */
+
+.rich-editor font[size="1"],
+.post-body font[size="1"] {
+  font-size: 12px;
+}
+
+.rich-editor font[size="2"],
+.post-body font[size="2"] {
+  font-size: 14px;
+}
+
+.rich-editor font[size="3"],
+.post-body font[size="3"] {
+  font-size: 16px;
+}
+
+.rich-editor font[size="4"],
+.post-body font[size="4"] {
+  font-size: 18px;
+}
+
+.rich-editor font[size="5"],
+.post-body font[size="5"] {
+  font-size: 20px;
+}
+
+.rich-editor font[size="6"],
+.post-body font[size="6"] {
+  font-size: 24px;
+}
+
+.rich-editor font[size="7"],
+.post-body font[size="7"] {
+  font-size: 28px;
 }
