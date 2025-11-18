@@ -106,23 +106,8 @@ async function loadInitialState() {
   } catch (e) {
     console.warn("posts.json 로드 실패, 기본 상태로 시작:", e);
     // 기본값
-    state.categories = [
-      { id: "unity", name: "Unity" },
-      { id: "unreal", name: "Unreal" },
-      { id: "backend", name: "Backend" },
-      { id: "etc", name: "기타" },
-    ];
-    state.posts = [
-      {
-        id: generateId("post"),
-        title: "블로그를 시작하며",
-        categoryId: "etc",
-        contentHtml:
-          "<p>posts.json을 아직 연결하지 않았거나 로드에 실패했습니다.</p>" +
-          "<p>우측 상단의 <b>posts.json 연결</b> 버튼을 눌러 로컬 레포의 posts.json을 선택한 뒤 저장해 주세요.</p>",
-        createdAt: new Date().toISOString(),
-      },
-    ];
+    state.categories = [];
+    state.posts = [];
   }
 }
 
@@ -632,55 +617,47 @@ function showView(view) {
 
 // ===== 해시 기반 라우팅 =====
 
-// #category/devlog, #post/post_xxx 같은 해시를 파싱
+// ex) #post/post_l1v2yyn → { type: "post", id: "post_l1v2yyn" }
 function getRouteFromHash() {
-  const raw = location.hash.replace(/^#/, "");
-  if (!raw) return { type: "category", id: "all" };
+  const raw = window.location.hash.replace(/^#/, ""); // ex) 'post/post_l1v2yyn'
+  if (!raw) return { type: "list", id: null };
 
   const [type, id] = raw.split("/");
-  return { type, id };
+  if (type === "post" && id) {
+    return { type: "post", id };
+  }
+
+  // 나중에 category 라우팅 추가하고 싶으면 여기서 type === "category" 도 처리 가능
+  return { type: "list", id: null };
 }
 
+// 해시가 바뀔 때마다 어떤 화면을 보여줄지 결정
 function handleHashChange() {
-  const { type, id } = getRouteFromHash();
+  const route = getRouteFromHash();
 
-  if (type === "category") {
-    const catId = id || "all";
-    // 존재하지 않는 카테고리면 all로
-    if (
-      catId !== "all" &&
-      !state.categories.some((c) => c.id === catId)
-    ) {
-      state.currentCategoryId = "all";
-    } else {
-      state.currentCategoryId = catId;
-    }
+  // 1) 포스트 상세 (#post/xxx)
+  if (route.type === "post" && route.id) {
+    const post = state.posts.find((p) => p.id === route.id);
 
-    renderCategories();
-    renderPostList();
-    showView("list");
-    return;
-  }
-
-  if (type === "post" && id) {
-    const post = state.posts.find((p) => p.id === id);
-    if (!post) {
-      // 없는 글이면 전체 목록으로
-      state.currentCategoryId = "all";
+    if (post) {
+      // 사이드바 카테고리 항상 렌더링
+      state.currentCategoryId = post.categoryId || "all";
       renderCategories();
-      renderPostList();
-      showView("list");
+
+      // 상세 열기
+      openPostDetail(route.id);
       return;
     }
-    openPostDetail(id);
-    return;
   }
 
-  // 그 외(잘못된 해시)는 기본: 전체 글
-  state.currentCategoryId = "all";
+  // 2) 그 외 (해시 없음, 잘못된 값 등) → 기본: 리스트 화면
+  if (!state.currentCategoryId) {
+    state.currentCategoryId = "all";
+  }
   renderCategories();
   renderPostList();
   showView("list");
+  document.title = "DevoongLog";
 }
 
 // ===== 리치 텍스트 툴바 =====
