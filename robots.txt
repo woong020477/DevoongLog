@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://woong020477.github.io/sitemap.xml
