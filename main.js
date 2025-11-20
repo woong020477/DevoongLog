@@ -623,11 +623,17 @@ function getRouteFromHash() {
   if (!raw) return { type: "list", id: null };
 
   const [type, id] = raw.split("/");
+
+  // 글 상세
   if (type === "post" && id) {
     return { type: "post", id };
   }
 
-  // 나중에 category 라우팅 추가하고 싶으면 여기서 type === "category" 도 처리 가능
+  // 카테고리 선택 (#category/all, #category/unity ...)
+  if (type === "category") {
+    return { type: "category", id: id || "all" };
+  }
+
   return { type: "list", id: null };
 }
 
@@ -640,17 +646,39 @@ function handleHashChange() {
     const post = state.posts.find((p) => p.id === route.id);
 
     if (post) {
-      // 사이드바 카테고리 항상 렌더링
+      // 사이드바 카테고리 활성화 맞추기
       state.currentCategoryId = post.categoryId || "all";
       renderCategories();
-
-      // 상세 열기
       openPostDetail(route.id);
       return;
     }
   }
 
-  // 2) 그 외 (해시 없음, 잘못된 값 등) → 기본: 리스트 화면
+  // 2) 카테고리 선택 (#category/xxx)
+  if (route.type === "category") {
+    const catId = route.id || "all";
+
+    // 실제 존재하는 카테고리인지 확인
+    if (catId === "all") {
+      state.currentCategoryId = "all";
+    } else if (state.categories.some((c) => c.id === catId)) {
+      state.currentCategoryId = catId;
+    } else {
+      // 이상한 값이면 전체로
+      state.currentCategoryId = "all";
+    }
+
+    renderCategories();   // 여기서 active 테두리 적용
+    renderPostList();     // 여기서 해당 카테고리 글만 필터링
+    showView("list");
+    document.title =
+      state.currentCategoryId === "all"
+        ? "DevoongLog"
+        : `${getCategoryName(state.currentCategoryId)} · DevoongLog`;
+    return;
+  }
+
+  // 3) 그 외 (해시 없음, 이상한 값) → 기본: 전체 글 목록
   if (!state.currentCategoryId) {
     state.currentCategoryId = "all";
   }
