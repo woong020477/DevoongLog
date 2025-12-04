@@ -478,7 +478,6 @@ async function savePost() {
       post.title = title;
       post.categoryId = categoryId;
       post.contentHtml = contentHtml;
-      post.createdAt = new Date().toISOString();
     }
   } else {
     const newPost = {

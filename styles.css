@@ -464,7 +464,6 @@ button {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   padding: 0;
-  background: #ffffff;
   cursor: pointer;
 }
 
@@ -472,6 +471,21 @@ button {
   transform: translateY(-0.5px);
   border-color: var(--accent);
 }
+
+/* 색상 프리셋 배경 설정 (data-color 기준) */
+.color-swatch[data-color="#ffffff"] { background: #ffffff; }
+.color-swatch[data-color="#ff4b4b"] { background: #ff4b4b; }
+.color-swatch[data-color="#ff8a3c"] { background: #ff8a3c; }
+.color-swatch[data-color="#ffd93b"] { background: #ffd93b; }
+.color-swatch[data-color="#7bd88f"] { background: #7bd88f; }
+.color-swatch[data-color="#10a37f"] { background: #10a37f; }
+.color-swatch[data-color="#3fa9f5"] { background: #3fa9f5; }
+.color-swatch[data-color="#7b5cff"] { background: #7b5cff; }
+.color-swatch[data-color="#c678ff"] { background: #c678ff; }
+.color-swatch[data-color="#ff6ac1"] { background: #ff6ac1; }
+.color-swatch[data-color="#ffa7a7"] { background: #ffa7a7; }
+.color-swatch[data-color="#a0a0b8"] { background: #a0a0b8; }
+.color-swatch[data-color="#000000"] { background: #000000; }
 
 /* 실제 글 작성 영역 */
 
