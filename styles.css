@@ -594,11 +594,6 @@ button {
   .main {
     padding: 16px;
   }
-  .rich-editor img,
-  .post-body img {
-    max-height: 75vh;
-    object-fit: contain;
-  }
 }
 
 /* fontSize(1~7) → px 매핑 (에디터 + 본문 공통) */
