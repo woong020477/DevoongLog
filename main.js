@@ -18,6 +18,11 @@ let imagesDirHandle = null;
 // 파일 저장용
 let fileHandle = null;
 
+// ===== 정적 글 페이지 생성용 (posts 폴더 / sitemap / index 템플릿) =====
+let postsDirHandle = null;        // /posts 폴더 핸들
+let sitemapFileHandle = null;     // sitemap.xml 파일 핸들
+let indexTemplateFileHandle = null; // index.html 파일 핸들(템플릿)
+
 // ===== DOM 참조 =====
 
 // 파일 연결 관련
@@ -95,6 +100,15 @@ function stripHtml(html) {
 // ===== posts.json 초기 로드 (fetch) =====
 
 async function loadInitialState() {
+  // 정적 글 페이지(posts/*.html)에서 주입된 데이터가 있으면 fetch 없이 바로 사용
+  if (window.__STATIC_PREFETCH__) {
+    const data = window.__STATIC_PREFETCH__;
+    state.categories = data.categories || [];
+    state.posts = data.posts || [];
+    state.currentCategoryId = "all";
+    return;
+  }
+
   try {
     const res = await fetch("posts.json", { cache: "no-store" });
     if (!res.ok) throw new Error("HTTP " + res.status);
@@ -323,7 +337,6 @@ async function deleteCategory(categoryId) {
 }
 
 // ===== 글 리스트 & 상세 =====
-
 function renderPostList() {
   postListEl.innerHTML = "";
 
@@ -355,10 +368,15 @@ function renderPostList() {
     const categoryName = getCategoryName(post.categoryId);
     const dateStr = formatDate(post.createdAt);
     const text = stripHtml(post.contentHtml || "");
-    const excerpt = text.length > 80 ? text.slice(0, 80) + "..." : text;
+    const excerpt = text.length > 80 ? text.slice(0, 80) + "." : text;
+
+    // 여기서만 post를 사용해야 함 (forEach 밖에서 쓰면 바로 ReferenceError)
+    const staticUrl = `posts/${post.id}.html`;
 
     card.innerHTML = `
-      <h3 class="post-title">${post.title}</h3>
+      <h3 class="post-title">
+        <a class="post-title-link" href="${staticUrl}">${post.title}</a>
+      </h3>
       <div class="post-meta-line">
         <span class="category-pill">${categoryName}</span>
         <span>${dateStr}</span>
@@ -366,6 +384,14 @@ function renderPostList() {
       <p class="post-excerpt">${excerpt}</p>
     `;
 
+    // 링크 클릭 시엔 정적 페이지로 이동 (크롤링/검색 유입용)
+    const linkEl = card.querySelector(".post-title-link");
+    linkEl.addEventListener("click", (e) => {
+      // 카드 클릭(해시 이동)과 충돌 방지
+      e.stopPropagation();
+    });
+
+    // 카드 클릭 시엔 기존 SPA 방식 유지
     card.addEventListener("click", () => {
       location.hash = `#post/${post.id}`;
     });
@@ -492,32 +518,160 @@ async function savePost() {
   }
 
   await saveJsonToFile();
+  // 로컬에서만: 정적 글 파일 + sitemap 자동 갱신
+  if (isLocalDev) {
+    await generateStaticPagesAndSitemap();
+  }
+
   renderPostList();
 
   // 방금 저장한 글 상세로 이동 (라우터가 처리)
   location.hash = `#post/${state.editingPostId}`;
 }
 
+async function generateStaticPagesAndSitemap() {
+  // 브라우저/환경 체크
+  if (!window.showDirectoryPicker || !window.showOpenFilePicker) return;
+
+  const dir = await ensurePostsDirHandle();
+  if (!dir) return;
+
+  // 글 파일 생성/갱신
+  for (const post of state.posts) {
+    const html = await buildPostHtmlFromIndexTemplate(post);
+    if (!html) continue;
+
+    const fileName = getPostHtmlFileName(post);
+    const postFileHandle = await dir.getFileHandle(fileName, { create: true });
+    await writeTextFile(postFileHandle, html);
+  }
+
+  // sitemap.xml 갱신
+  const sitemapHandle = await ensureSitemapFileHandle();
+  if (sitemapHandle) {
+    const xml = buildSitemapXml();
+    await writeTextFile(sitemapHandle, xml);
+  }
+
+  // (선택) 상태 표시
+  fileStatusText.textContent = `정적 글/사이트맵 생성 완료 (${state.posts.length}개)`;
+}
+
+// posts 폴더에서 특정 글 html 삭제
+async function deleteStaticPostFile(postId) {
+  const dir = await ensurePostsDirHandle();
+  if (!dir) return;
+
+  const fileName = `${postId}.html`;
+
+  try {
+    await dir.removeEntry(fileName);
+    console.log(`정적 글 삭제됨: ${fileName}`);
+  } catch (e) {
+    // 파일이 없을 수도 있으니 에러는 경고만
+    console.warn(`정적 글 파일 없음 또는 삭제 실패: ${fileName}`, e);
+  }
+}
+
 async function deleteCurrentPost() {
   if (!state.editingPostId) return;
+
+  const postId = state.editingPostId;
 
   const ok = confirm("이 글을 삭제하시겠습니까?");
   if (!ok) return;
 
-  state.posts = state.posts.filter((p) => p.id !== state.editingPostId);
+  // 1) posts.json 상태에서 제거
+  state.posts = state.posts.filter((p) => p.id !== postId);
   state.editingPostId = null;
 
   await saveJsonToFile();
+
+  // 2) 로컬 개발 환경이면 정적 파일도 삭제 + sitemap 갱신
+  if (isLocalDev) {
+    await deleteStaticPostFile(postId);
+    await regenerateSitemapOnly();
+  }
+
+  // 3) UI 갱신
   renderPostList();
 
-  // 현재 카테고리 목록으로 돌아가기
+  // 현재 카테고리 영역으로 돌아가기
   const catId = state.currentCategoryId || "all";
   location.hash = `#category/${catId}`;
 }
 
+
 function closeEditor() {
   state.editingPostId = null;
   showView("list");
+}
+
+// posts 폴더 선택 (처음 한 번만)
+async function ensurePostsDirHandle() {
+  if (postsDirHandle) return postsDirHandle;
+
+  if (!window.showDirectoryPicker) {
+    alert("이 브라우저에서는 폴더 선택(Directory Picker)을 지원하지 않습니다.");
+    return null;
+  }
+
+  alert("정적 글 파일을 생성할 /posts 폴더를 선택해주세요.\n(레포 루트의 posts 폴더)");
+  try {
+    postsDirHandle = await window.showDirectoryPicker();
+    return postsDirHandle;
+  } catch (e) {
+    console.warn("posts 폴더 선택 취소/실패:", e);
+    return null;
+  }
+}
+
+// sitemap.xml 파일 선택 (처음 한 번만)
+async function ensureSitemapFileHandle() {
+  if (sitemapFileHandle) return sitemapFileHandle;
+
+  if (!window.showOpenFilePicker) {
+    alert("이 기능은 Chrome / Edge 같은 Chromium 브라우저에서만 동작합니다.");
+    return null;
+  }
+
+  alert("sitemap.xml 파일을 선택해주세요. (레포 루트의 sitemap.xml)");
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: "XML Files", accept: { "application/xml": [".xml"] } }],
+      excludeAcceptAllOption: true,
+      multiple: false,
+    });
+    sitemapFileHandle = handle;
+    return sitemapFileHandle;
+  } catch (e) {
+    console.warn("sitemap.xml 선택 취소/실패:", e);
+    return null;
+  }
+}
+
+// index.html 템플릿 파일 선택 (처음 한 번만)
+async function ensureIndexTemplateFileHandle() {
+  if (indexTemplateFileHandle) return indexTemplateFileHandle;
+
+  if (!window.showOpenFilePicker) {
+    alert("이 기능은 Chrome / Edge 같은 Chromium 브라우저에서만 동작합니다.");
+    return null;
+  }
+
+  alert("index.html 파일을 선택해주세요. (이걸 그대로 복사해서 글 페이지를 만들거야)");
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: "HTML Files", accept: { "text/html": [".html"] } }],
+      excludeAcceptAllOption: false,
+      multiple: false,
+    });
+    indexTemplateFileHandle = handle;
+    return indexTemplateFileHandle;
+  } catch (e) {
+    console.warn("index.html 선택 취소/실패:", e);
+    return null;
+  }
 }
 
 // 이미지 폴더 선택 (처음 한 번만)
@@ -604,6 +758,131 @@ async function insertImageFromLocalFile() {
     console.error("이미지 파일 선택/저장 중 오류:", e);
     alert("이미지 파일을 저장하는 중 오류가 발생했습니다.");
   }
+}
+
+// 사이트 기본 URL (robots.txt에 이미 이 값으로 sitemap 등록돼있음)
+const SITE_BASE_URL = "https://woong020477.github.io/DevoongLog"; // 필요하면 네 도메인으로 바꿔
+
+function getPostHtmlFileName(post) {
+  // 제목 슬러그보다 id가 안정적(중복/한글/특수문자 문제 없음)
+  return `${post.id}.html`;
+}
+
+function toLastModDate(isoString) {
+  // sitemap lastmod는 보통 YYYY-MM-DD 형태를 많이 씀
+  const d = new Date(isoString);
+  if (Number.isNaN(d.getTime())) return null;
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+async function regenerateSitemapOnly() {
+  const sitemapHandle = await ensureSitemapFileHandle();
+  if (!sitemapHandle) return;
+
+  const xml = buildSitemapXml();
+  await writeTextFile(sitemapHandle, xml);
+}
+
+function buildSitemapXml() {
+  const urls = [];
+
+  // 메인
+  urls.push({
+    loc: `${SITE_BASE_URL}/index.html`,
+    changefreq: "weekly",
+    priority: "1.0",
+    lastmod: null,
+  });
+
+  // 글들
+  for (const post of state.posts) {
+    urls.push({
+      loc: `${SITE_BASE_URL}/posts/${getPostHtmlFileName(post)}`,
+      changefreq: "monthly",
+      priority: "0.7",
+      lastmod: toLastModDate(post.createdAt),
+    });
+  }
+
+  const lines = [];
+  lines.push(`<?xml version="1.0" encoding="UTF-8"?>`);
+  lines.push(`<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`);
+
+  for (const u of urls) {
+    lines.push(`  <url>`);
+    lines.push(`    <loc>${u.loc}</loc>`);
+    if (u.lastmod) lines.push(`    <lastmod>${u.lastmod}</lastmod>`);
+    lines.push(`    <changefreq>${u.changefreq}</changefreq>`);
+    lines.push(`    <priority>${u.priority}</priority>`);
+    lines.push(`  </url>`);
+  }
+
+  lines.push(`</urlset>`);
+  return lines.join("\n");
+}
+
+async function writeTextFile(fileHandle, text) {
+  const writable = await fileHandle.createWritable();
+  await writable.write(text);
+  await writable.close();
+}
+
+// index.html “그대로” 복사해서 posts/*.html 만들기
+async function buildPostHtmlFromIndexTemplate(post) {
+  const templateHandle = await ensureIndexTemplateFileHandle();
+  if (!templateHandle) return null;
+
+  const file = await templateHandle.getFile();
+  let html = await file.text();
+
+  // 1) 글 페이지에서 상대경로(images/...)가 깨지는 문제 해결
+  //    /posts/xxx.html에서 images/... 를 ../images/... 로 해석시키기 위해 base를 ../로 설정
+  if (!html.includes("<base ")) {
+    html = html.replace(
+      /<head(\s*)>/i,
+      `<head$1>\n  <base href="../" />`
+    );
+  }
+
+  // 2) 타이틀을 글 제목으로 바꿔서 SEO/공유 품질 올리기
+  html = html.replace(/<title>.*?<\/title>/i, `<title>${escapeHtml(post.title)} · DevoongLog</title>`);
+
+  // 3) 이 페이지가 “이 글을 바로 열어라”를 main.js에 전달
+  //    (index 구조는 유지하되, 초기 라우팅만 강제로 post로 보냄)
+  const inject = `
+  <script>
+    // 정적 페이지에서 fetch(posts.json) 없이 바로 렌더링 가능하도록 주입
+    window.__STATIC_PREFETCH__ = ${JSON.stringify({
+      categories: state.categories,
+      posts: state.posts,
+    })};
+    window.__STATIC_ROUTE__ = ${JSON.stringify({ type: "post", id: post.id })};
+  </script>
+  `;
+
+  // index.html이 <script src="main.js"></script>를 쓰고 있으니 그 바로 앞에 주입
+  if (html.includes('<script src="main.js"></script>')) {
+    html = html.replace('<script src="main.js"></script>', `${inject}\n  <script src="main.js"></script>`);
+  } else {
+    // 혹시 구조가 바뀌면 body 끝에라도 넣기
+    html = html.replace(/<\/body>/i, `${inject}\n</body>`);
+  }
+
+  // 4) 글 페이지는 읽기전용으로 시작(버튼은 이미 editor-only로 숨겨짐)
+  //    그래도 혹시 모르니 body에 class 추가
+  html = html.replace(/<body(\s*)>/i, `<body$1 class="read-only">`);
+
+  return html;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 // ===== 뷰 전환 =====
@@ -791,6 +1070,16 @@ async function init() {
 
   // 첫 진입 시 현재 해시(#category/..., #post/...) 기준으로 화면 결정
   handleHashChange();
+
+  // 정적 글 페이지(posts/*.html)에서 바로 해당 글 상세로 이동
+  if (window.__STATIC_ROUTE__?.type === "post" && window.__STATIC_ROUTE__?.id) {
+    const post = state.posts.find(p => p.id === window.__STATIC_ROUTE__.id);
+    if (post) {
+      state.currentCategoryId = post.categoryId || "all";
+      renderCategories();
+      openPostDetail(post.id);
+    }
+  }
 
   if (!isLocalDev) {
     // 외부 접속: 읽기 전용 모드

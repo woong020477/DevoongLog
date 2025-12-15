@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <base href="../" />
+  <meta charset="UTF-8" />
+  <title>블로그를 시작하며 · DevoongLog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="read-only">
+  <div class="app">
+    <!-- ===== 사이드바 (카테고리) ===== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">DevoongLog</div>
+      </div>
+
+      <section class="sidebar-section">
+        <div class="sidebar-section-header">
+          <h2>카테고리</h2>
+          <button id="addCategoryBtn" class="icon-btn editor-only" title="카테고리 추가">
+            +
+          </button>
+        </div>
+        <ul id="categoryList" class="category-list">
+          <!-- JS에서 렌더링 -->
+        </ul>
+
+        <!-- 카테고리 이름 입력 폼 -->
+        <div id="categoryForm" class="category-form hidden editor-only">
+          <input
+            type="text"
+            id="categoryNameInput"
+            placeholder="카테고리 이름"
+          />
+          <div class="form-row">
+            <button id="categorySaveBtn" class="primary-btn">저장</button>
+            <button id="categoryCancelBtn" class="outline-btn">취소</button>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- ===== 메인 영역 ===== -->
+    <main class="main">
+      <!-- 상단 헤더 -->
+      <header class="top-bar">
+        <div>
+          <h1 id="blogTitle">Dev웅log</h1>
+          <p class="subtitle">
+            Unity · Unreal · 게임 개발 기록 블로그
+          </p>
+        </div>
+
+        <div class="top-bar-actions">
+            <span id="fileStatusText" class="file-status">로컬 파일: 연결 안 됨</span>
+            <button id="connectFileBtn" class="outline-btn small-btn editor-only">
+                posts.json 연결
+            </button>
+            <button id="newPostBtn" class="primary-btn editor-only">
+                새 글 작성
+            </button>
+        </div>
+      </header>
+
+      <!-- 글 리스트 화면 -->
+      <section id="postListView" class="panel">
+        <div class="panel-header">
+          <h2 id="postListTitle">전체 글</h2>
+        </div>
+        <div id="postList" class="post-list">
+          <!-- JS에서 렌더링 -->
+        </div>
+        <p id="emptyPostMessage" class="empty-text hidden">
+          아직 작성된 글이 없습니다. <br/>
+        </p>
+      </section>
+
+      <!-- 글 작성/편집 화면 -->
+      <section id="postEditorView" class="panel hidden">
+        <div class="panel-header">
+          <h2 id="editorTitle">새 글 작성</h2>
+        </div>
+
+        <div class="form-group">
+          <label for="postTitleInput">제목</label>
+          <input type="text" id="postTitleInput" />
+        </div>
+
+        <div class="form-group">
+          <label for="postCategorySelect">카테고리</label>
+          <select id="postCategorySelect"></select>
+        </div>
+
+        <div class="form-group">
+          <label>내용</label>
+          <!-- 리치 텍스트 툴바 -->
+          <div id="editorToolbar" class="editor-toolbar">
+            <!-- 기본 텍스트 스타일 -->
+            <button type="button" class="toolbar-btn" data-command="bold">
+              B
+            </button>
+            <button type="button" class="toolbar-btn" data-command="italic">
+              I
+            </button>
+            <button type="button" class="toolbar-btn" data-command="underline">
+              U
+            </button>
+            <button type="button" class="toolbar-btn" data-command="strikeThrough">
+              S
+            </button>
+
+            <span class="toolbar-divider"></span>
+
+            <!-- 정렬 -->
+            <button type="button" class="toolbar-btn" data-command="justifyLeft">
+              ⬅
+            </button>
+            <button type="button" class="toolbar-btn" data-command="justifyCenter">
+              ⬌
+            </button>
+            <button type="button" class="toolbar-btn" data-command="justifyRight">
+              ➡
+            </button>
+
+            <span class="toolbar-divider"></span>
+
+            <!-- 리스트 -->
+            <button type="button" class="toolbar-btn" data-command="insertUnorderedList">
+              • 리스트
+            </button>
+            <button type="button" class="toolbar-btn" data-command="insertOrderedList">
+              1. 리스트
+            </button>
+
+            <span class="toolbar-divider"></span>
+
+            <!-- 글자 크기 -->
+            <label class="toolbar-label">
+              글자 크기
+              <select id="toolbarFontSize">
+                <option value="">기본</option>
+                <option value="1">12px</option>
+                <option value="2">14px</option>
+                <option value="3">16px</option>
+                <option value="4">18px</option>
+                <option value="5">20px</option>
+                <option value="6">24px</option>
+                <option value="7">28px</option>
+              </select>
+            </label>
+
+            <span class="toolbar-divider"></span>
+
+            <!-- 색상 프리셋 -->
+            <span class="toolbar-label">
+              색상
+              <div id="toolbarColorPalette" class="color-palette">
+                <!-- 대충 15개 정도 프리셋 -->
+                <button type="button" class="color-swatch" data-color="#ffffff" title="흰색"></button>
+                <button type="button" class="color-swatch" data-color="#ff4b4b" title="빨강"></button>
+                <button type="button" class="color-swatch" data-color="#ff8a3c" title="주황"></button>
+                <button type="button" class="color-swatch" data-color="#ffd93b" title="노랑"></button>
+                <button type="button" class="color-swatch" data-color="#7bd88f" title="연두"></button>
+                <button type="button" class="color-swatch" data-color="#10a37f" title="초록"></button>
+                <button type="button" class="color-swatch" data-color="#3fa9f5" title="파랑"></button>
+                <button type="button" class="color-swatch" data-color="#7b5cff" title="남색"></button>
+                <button type="button" class="color-swatch" data-color="#c678ff" title="보라"></button>
+                <button type="button" class="color-swatch" data-color="#ff6ac1" title="핑크"></button>
+                <button type="button" class="color-swatch" data-color="#ffa7a7" title="살구"></button>
+                <button type="button" class="color-swatch" data-color="#a0a0b8" title="회색"></button>
+                <button type="button" class="color-swatch" data-color="#000000" title="검정"></button>
+              </div>
+            </span>
+
+            <span class="toolbar-divider"></span>
+
+            <!-- 링크 / 이미지 -->
+            <button type="button" class="toolbar-btn" data-command="createLink">
+              링크
+            </button>
+            <button type="button" class="toolbar-btn" data-command="insertImage">
+              이미지
+            </button>
+          </div>
+
+          <!-- 리치 텍스트 에디터 -->
+          <div
+            id="postContentEditor"
+            class="rich-editor"
+            contenteditable="true"
+          ></div>
+        </div>
+
+        <div class="form-row">
+          <button id="postSaveBtn" class="primary-btn">저장 + posts.json 기록</button>
+          <button id="postCancelBtn" class="outline-btn">취소</button>
+        </div>
+      </section>
+
+      <!-- 글 상세 + 댓글 화면 -->
+      <section id="postDetailView" class="panel hidden">
+        <button id="backToListBtn" class="outline-btn small-btn">
+          ← 글 목록으로
+        </button>
+
+        <article class="post-detail">
+          <h2 id="detailTitle"></h2>
+          <div class="post-meta">
+            <span id="detailCategory"></span>
+            <span id="detailDate"></span>
+          </div>
+
+          <div id="detailContent" class="post-body"></div>
+
+          <div class="form-row editor-only">
+            <button id="detailEditBtn" class="outline-btn small-btn">
+              글 수정
+            </button>
+            <button id="detailDeleteBtn" class="danger-btn small-btn">
+              글 삭제
+            </button>
+          </div>
+        </article>
+
+        <!-- ===== GitHub ID 기반 댓글 영역 (giscus) ===== -->
+        <section class="comments-section">
+          <h3>댓글 (GitHub 로그인 필요)</h3>
+          <div id="giscusContainer"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  
+  <script>
+    // 정적 페이지에서 fetch(posts.json) 없이 바로 렌더링 가능하도록 주입
+    window.__STATIC_PREFETCH__ = {"categories":[{"id":"unity","name":"Unity"},{"id":"unreal","name":"Unreal"},{"id":"devlog","name":"개발관련기록"}],"posts":[{"id":"post_example","title":"블로그를 시작하며","categoryId":"devlog","contentHtml":"<p>이 블로그는 GitHub Pages + HTML/JS + File System Access API로 만든 개발 블로그입니다.</p><ul><li>카테고리를 만들어서 글을 정리하고,</li><li>리치 텍스트 에디터로 글을 작성하고,</li><li>로컬에서 <b>posts.json</b>을 직접 수정해서 저장합니다.</li></ul>","createdAt":"2025-11-17T11:46:38.162Z"},{"id":"post_l1v2yyn","title":"유니티 20주년 게임잼 후기","categoryId":"devlog","contentHtml":"<div style=\"text-align: center;\"><img src=\"images/1763380846309_jam.png\"></div><div style=\"text-align: center;\"><b>유니티 20주년 게임잼에 참여했다.</b></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">게임잼이 처음이라 내 실력이 어느정도인지 정확하지 않기도 하고, '내가 어느 팀에 소속되서 1인분을 할 수 있을까'라는 두려움이 있어서</div><div style=\"text-align: center;\">유니티에서 공식으로 열기도 하고, 1인 개발자도 참여가 가능하단 이야기에 '이 기회를 발판삼아 게임잼도 많이 참여해봐야겠다.' 라는 느낌으로 참가 신청을 하게되었다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><img src=\"images/1763381118711_jamdiscord.png\"></div><div style=\"text-align: center;\">디스코드 채널에서 게임잼에 참여하면 Jammer 20 역할도 달아준다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">아무래도 전 세계에서 진행하는 게임잼이라 UTC 기준으로 시간을 맞춰</div><div style=\"text-align: center;\">한국 기준 2025년 10월 8일 새벽 2시부터 11월 10일 오전 10시까지 진행되었다.</div><div style=\"text-align: center;\">주제는 게임잼 시작하는 당일 발표되었으며, 에셋은 자유롭게 사용 가능하지만</div><div style=\"text-align: center;\">옛날 유니티 에셋을 사용하면 \"20주년 기념 에셋을 이용한 창의적인 작품\" 부분에 등록할 수 있다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">그래서 시작 전에 기획을 하진 않았지만 가급적 20주년 기념 에셋을 적극 활용해야겠단 생각이 들었다.</div><div style=\"text-align: center;\">일단 새벽에 시작하는 만큼 잠을 충분히 자고 10시쯤에 일어나서 게임잼에 참여하였다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><b>게임잼 시작</b></div><div style=\"text-align: center;\"><b><br></b></div><div style=\"text-align: center;\"><img src=\"images/1763381763168_jamtheme.png\"></div><div style=\"text-align: center;\">시간이 지나 2시에 게임잼이 시작되었고 유니티 공식 채널을 통해 주제가 \"Timeless\"라는 주제가 발표되었다.</div><div style=\"text-align: center;\">처음 주제를 보았을 때 전혀 생각하지 못한 주제라 조금 당황스러웠다.</div><div style=\"text-align: center;\">\"영원한\" 이라는 소재를 가지고 뭘 만들까 고민하다가 '게임잼 시작 전 과거 유니티 에셋을 사용해보자'라고 생각했던게 떠올라</div><div style=\"text-align: center;\">'이걸 이용한 간단한 미니게임을 만들어보자'라고 판단했고, 단순하게 오브젝트에 접촉만 하면 자동으로 적들을 물리치는 게임을 만드는 것을 목표로 기획하였다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><img src=\"images/1763382145032_GameLogo.png\"></div><div style=\"text-align: center;\"><b>그리하여 만든 게임이 'Froxy Farming'이다.</b></div><div style=\"text-align: center;\"><b><br></b></div><div style=\"text-align: center;\">적 진영까지 넘어가 CS를 처치하여 성장한다는 개념인 리그오브레전드 게임 용어 \"오버파밍\"에서 영감을 받아 제목을 이렇게 지었고,</div><div style=\"text-align: center;\">적진 한가운데에서 나를 따라오는 적들을 피해 과거 유니티 오브젝트를 접촉하여 적을 처치하며 살아남는 미니게임이다.</div><div style=\"text-align: center;\">다운로드는 이 곳에서 할 수 있다 :&nbsp;<a href=\"https://kangjiwoong.itch.io/proxy-farming\">https://kangjiwoong.itch.io/proxy-farming</a></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">게임을 만들면서 여러 이슈가 발생하였는데</div><div style=\"text-align: center;\"><b><br></b></div><div style=\"text-align: center;\"><b><font color=\"#ff0000\">첫 번째</font></b>는 <b>최신 버전의 유니티를 사용해보지 않아서 인풋 시스템 어떻게 사용하는거야?</b> 였다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">게임잼에 참가한다는 양반이 이걸 왜 모르냐 할 수 있겠지만</div><div style=\"text-align: center;\">과거 인풋 매니저를 통해서만 입력 처리를 해서 인풋 시스템으로 개발하라고 경고가 출력되었을 때 매우 당황했다.</div><div style=\"text-align: center;\">부랴부랴 인풋 시스템에 대해 이것저것 찾아보면서 적용했는데 뭔가 불편해서 이걸 우회할 방법을 찾다가</div><div style=\"text-align: center;\">프로젝트 세팅에서 인풋 매니저를 활성화할 수 있다는 글을 보고 바로 활성화 하여 작업을 진행했다 ㅎㅎ;;</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><font color=\"#ff0000\"><b>두 번째</b></font>는 <b>전 세계에서 내 작품을 평가하는데 언어는 어떻게 처리할까?</b> 였다.</div><div style=\"text-align: center;\">단순하게 영어로 작품을 만들어서 제출하는것도 편한 방법이겠지만</div><div style=\"text-align: center;\">이렇게 하나의 언어로만 개발하면 나중에 여러 나라의 언어로 개발하는 위기가 찾아올 때 '이런식으로 해결하였습니다.' 라는 답을 낼 수 없어</div><div style=\"text-align: center;\">이번 기회에 Localization을 찾아보며 유니티에서 제공하는 지역화를 통해 영어 / 한국어 언어 스위칭 시스템을 개발하였다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><font color=\"#ff0000\"><b>세 번째</b></font>는 <b>게임 플레이에 있어 어떤 차별점을 줘야 할까?</b> 였다.</div><div style=\"text-align: center;\">단순하게 적을 피해 아이템을 획득하는 것 만으론 식상할 것 같았다.</div><div style=\"text-align: center;\">이것저것 생각을 해봤지만 짧은 시간 내에 구현을 하기 힘들 것 같아서 내린 결정은</div><div style=\"text-align: center;\">랜덤 등급 시스템을 도입하는 것이였다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><img src=\"images/1763383122345_Grade_Guid.png\"></div><div style=\"text-align: center;\">단순하게 1~5까지 등급을 나누고 랜덤으로 정수를 오브젝트 스포너에서 스폰 당시 등급(int)와 등급 별 파티클 이펙트를 할당하여</div><div style=\"text-align: center;\">랜덤 스폰되는 아이템 마다 이펙트와 등급 별 효과를 더하여 약간의 흥미를 이끌어냈다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">이렇게 게임을 만들어서 제출을 하였고, 그 상태로 시간이 지나 게임잼 제출 시간이 마감되었다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">여기서 <font color=\"#ff0000\"><b>네 번째</b></font>는 <b>조금 더 itch.io 문화에 대해 이해하고, 제출물 페이지도 신경 쓸걸...</b> 이였다.</div><div style=\"text-align: center;\"><img src=\"images/1763383373841_jamsubmission.png\"></div><div style=\"text-align: center;\">보이는대로 하단에 게임 플레이에 대한 간단한 이미지도 설명도 보이지 않는다...</div><div style=\"text-align: center;\">그리고 windows, mac, linux로 빌드 할 경우 zip 형식의 압축파일로 빌드 파일을 올릴 수 있는데</div><div style=\"text-align: center;\">webGL의 경우 해당 페이지에서 실제 게임 플레이가 가능하도록 구동이 가능하단거였다.</div><div style=\"text-align: center;\">(게임잼에서도 webGL을 권장했고, 이전에 itch.io 들어갔을 때도 봤으면서 이렇게 빌드한 내 잘못이 크다...)</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">다음에 이런 게임잼을 참여하게 되면 어떻게 사용자에게 쉽게 접근할 지 한번 더 고민하고</div><div style=\"text-align: center;\">이에 맞춰 이용하기 쉬운 방식으로 배포 및 안내 이미지와 텍스트를 섬세하게 작성하는 센스를 발휘해야겠다...</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">게임잼 종료 후 여러 작품을 플레이 해보며 평가를 해보았다.</div><div style=\"text-align: center;\">역시 세상에 고수는 많다... 클리커 게임이라던지, 스토리 게임이라던지</div><div style=\"text-align: center;\">어렵지 않은 게임 방식을 선택하여 예쁘게 디자인하고 여러 효과와 기능을 추가하니 삐까뻔쩍한 작품들이 많았다...</div><div style=\"text-align: center;\">아무리 미리 준비한 에셋을 사용해도 상관 없다고 공지되어 있었다곤 하지만 그걸 감안해도 엄청난 완성도의 작품이 즐비했다.</div><div style=\"text-align: center;\"><font color=\"#858585\">(</font><a href=\"https://neonage.itch.io/uni-verse-journey-through-the-ages\">https://neonage.itch.io/uni-verse-journey-through-the-ages</a>&nbsp;<font color=\"#858585\">특히 이 작품을 보고 벽을 재대로 느껴버렸다...)</font></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">여러 작품들을 보고 주눅들기도 했지만 오히려 이런걸 보고 다양한 아이디어와 센스들을 배울 수 있었다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><b>게임잼 투표 종료 후</b></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><img src=\"images/1763384227198_jamresult.png\"></div><div style=\"text-align: center;\">드디어 모든 투표가 종료되었고 내 작품 결과가 나왔다.</div><div style=\"text-align: center;\"><b>총 437개 제출작 중 149등을 달성하였다.</b></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">스토리와 게임 플레이를 엮는 부분과 아트 부분에서 낮은 점수를 받았다... 아무래도 1인개발이다 보니 UI 디자인도 비슷한걸 많이 쓴 경향이 없지않아 있고,</div><div style=\"text-align: center;\">게임 플레이 씬 디자인도 사각형 타일맵 하나에 우주배경이 끝이니 충분히 납득 가능했다.</div><div style=\"text-align: center;\">그리고 스토리는 게임 설명에 텍스트로 대체했으니 더욱 납득하게 되었다...</div><div style=\"text-align: center;\"><font color=\"#858585\">(역시 기획은 어렵다...)</font></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><b>게임잼을 마무리하며</b></div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\"><font color=\"#ffffff\">힘들긴 하지만 끝내고 나서 엄청난 성취감과, 동기 부여는 직빵이다... 이래서 개발 좋아하는 사람들이 해커톤, 게임잼 등 참여하는 것 같다는걸 세삼 느끼게 되었다.</font></div><div style=\"text-align: center;\"><div>처음 진행해보는 게임잼이여서 부족한 점도 많았지만, 앞으로도 이런 게임잼이 계속 열린다면 다음엔 반드시 팀으로!! 참여할 계획이다.</div><div><font color=\"#858585\">(1인 개발은 머리 터지겠다...)</font></div></div>","createdAt":"2025-11-17T13:09:33.970Z"},{"id":"post_y254ewj","title":"라이엇 게임즈 백엔드 엔지니어 특강","categoryId":"devlog","contentHtml":"<div><img src=\"images/1764818220072_print.png\"></div><div style=\"text-align: center;\">SW중심대학사업 성과공유회 포스터</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: left;\">성과 공유회에서 라이엇게임즈 코리아에서 백엔드 S/W엔지니어로 재직중이신 박무동 엔지니어님의 특강을 듣게 되었다.</div><div style=\"text-align: left;\"><br></div><div style=\"text-align: left;\">&nbsp;사실 처음에는 \"라이엇게임즈 본사\"였으면 흥미가 갔을 지 모르겠지만, \"라이엇게임즈 코리아\"라고 하면 실제 게임개발의 핵심을 달리는 것 보단 한국에서 라이브 서비스를 하기 위해 보조하는 회사라는 인식을 강하게 가지고 있어서 흥미를 가지진 않았다. 그래서 작년에 학교에 특강 오셨을 때 들을 기회가 있었음에도 듣지 않았는데, 올해 수강하는 강의에서 \"성과 공유회 참석을 출석으로 인정한다.\" 라고 하셔서 반 강제적으로 참여하는 김에 특강을 듣게 되었다.</div><div style=\"text-align: center;\"><br></div><div style=\"text-align: center;\">특강 시작</div><div style=\"text-align: left;\"><br></div><div style=\"text-align: left;\">특강을 진행하게된 박무동 엔지니어님의 간단한 소개와 함께 엔지니어링이 무엇인가에 대해 질의응답을 가지고 엔지니어링에 대한 정의를 설명하셨다.</div><div style=\"text-align: left;\"><font color=\"#7bd88f\"><br></font></div><font color=\"#7bd88f\">\"디자인 부터 구현과 검증 및 피드백을 통한 발전까지 인지하고, 인식하고, 발전하는 부분 까지를 Engineering이라고 정의한다.</font><div><font color=\"#7bd88f\"><br></font><div><font color=\"#7bd88f\">그럼 Software Engineering이란 무엇인가 앞에서 기술한 Engineering 과정을 소프트웨어라는 도구를 활용하여 해당 과정을 수행하는 직군을 정의한다.\"</font></div><div><font color=\"#ffffff\"><br></font></div><div><font color=\"#ffffff\">&nbsp;이러한 말씀을 해주셨을 때 S/W Engineer와 Programmer에 대한 혼동이 크게 왔다. 그래서 더 찾아본 결과&nbsp;</font></div><div><font color=\"#ffffff\">Software Engineer는 Software 전반에 대한 과정을 수행하는 직군이고,</font></div><div><font color=\"#ffffff\">Programmer는 Software 특정 부분, 컴퓨터가 이해할 수 있는 언어를 작성하는 코드레벨에서 활동하는 직군이라는 차이를 알게되었다.</font></div><div><font color=\"#ffffff\"><br></font></div><div style=\"text-align: center;\"><font color=\"#ffffff\">Backend와 Server</font></div><div style=\"text-align: center;\"><font color=\"#ffffff\"><br></font></div><div><font color=\"#ffffff\">&nbsp;서버는 식당 Server 이미지를 보여주며 서버의 유래와 Backend 직군의 Server의 정의를 알려주셨다. </font><font color=\"#a0a0b8\">혹시 엔지니어님도 식당으로 비유하는 밈을 아시는건가..?</font></div><div><font color=\"#ffffff\">그리고 이를 기반으로 백엔드 엔지니어에 대한 정의를 내려주셨다.</font></div><div><font color=\"#ffffff\"><br></font></div><div><font color=\"#7bd88f\">\"클라이언트의 요청에 대한 디자인과 이 요청을 잘 처리할 수있는 비즈니스, 통신과 DB설계를 Backend Engineering이라고 한다.\"</font></div><div><font color=\"#ffffff\"><br></font></div><div><font color=\"#ffffff\">여기까진 내가 이해하고있는 Backend 부분에 대한 생각과 크게 다르지 않았다.</font></div><div><font color=\"#ffffff\"><br></font></div><div style=\"text-align: center;\"><font color=\"#7bd88f\">\"</font></div><div><font color=\"#7bd88f\">API Development, Database Design, Business Logic Implementation, Security &amp; Performance Optimization 이렇게 4가지 작업을 수행하게된다.</font></div><div><font color=\"#7bd88f\"><br></font></div><div><ol><li><font color=\"#7bd88f\">&nbsp;API Development : 사용자 - 서버 통신 과정에서 사용자가 예상치 못한 사용방식을 만들 수 있고, 필요한 부분만 정확하게 통신 할 수 있도록 하는게 중요하다. (REST 설계!)</font></li><li><font color=\"#7bd88f\">&nbsp;Database Design : 옛날에는 서버환경도 안좋고 DB컴터 부품도 비싸서 까다로웠지만 요즘은 클라우드나 저렴한 DB컴터값이 맞물려 완화되었다. Backend가 설계한 쿼리에 따라 사용량의 차이가 엄청 차이나기에 깔끔하게 해준다.&nbsp;</font></li><li><font color=\"#7bd88f\">&nbsp;Business Logic : 좋은 코드를 짜는게 중요(과거 메모리 사용량의 중요성이 중요했지만 지금은 퍼포먼스 보단 소프트웨어 엔지니어링 시간과 가독성 중요함을 강조)</font></li><li><font color=\"#7bd88f\">&nbsp;Security &amp; Performance Optimization : 과거보다 사양이 좋아져서 퍼포먼스 부분에 신경을 잘 안쓰지만 정렬 알고리즘, 탐색 알고리즘 등등 잘 안쓰는거 같아도 자주쓰니까 필요할 때 툭 튀어 나오도록 학습 필요</font></li></ol><font color=\"#7bd88f\"><div style=\"text-align: center;\">\"</div></font><div><font color=\"#ffffff\">&nbsp;이렇게 백엔드 엔지니어로 수행하는 업무와 이 업무에서 중요한 점에 대해 설명해주셨는데 이 부분에서 부터 '옛날에 개발자가 가져야 하는 역량과 지금에 개발자가 가져야 할 역량이 크게 다르지는 않구나' 라는 것을 느꼈다.&nbsp;</font></div><div><font color=\"#ffffff\"><br></font></div><div style=\"text-align: center;\"><font color=\"#ffffff\">필요 역량</font></div><div style=\"text-align: center;\"><font color=\"#7bd88f\"><br></font></div><div style=\"text-align: center;\"><font color=\"#7bd88f\">\"</font></div><div><ol><li><font color=\"#7bd88f\">기술적인 이해가 필요함(운영체제, 자료구조 현업에서 잘 안쓰지만 언젠가 한번 나올 수 있다. 그리고 시스템 배경지식이 기술적인 스크립팅 능력을 자연스레 향상 시킬 수 있다.)</font></li><li><font color=\"#7bd88f\">Trade-offs가 가장 중요함(퍼포먼스가 아무리 좋아도 해당 프로젝트에 맞는 개발 방법을 따르지 않으면 이후 수정이 힘들 정도로 개발 비용이 증가하는 사례를 알려 주시면서 신기술 인용 시 장단점을 명확히 서술, 오버 엔지니어링(고려 하지 않아도 될 if else if 줄줄줄 달아놓는 오버 엔지니어링에 관한 사례와 개발 능력에 따른 프로젝트 분배 사례를 예시로 들었다.)절대 금지</font></li><li><font color=\"#7bd88f\">좋은 피드백을 받아들일 수 있도록 항상 겸손하게 행동하라</font></li></ol></div></div><div style=\"text-align: center;\"><font color=\"#7bd88f\">\"</font></div><div><font color=\"#ffffff\">&nbsp;과거에 소프트웨어 개발방법론에서 나온 내용 중 인건비에 관한 부분이 솔직히 이해가 되지 않았다. '내가 사장할거도 아니고, 사람마다 능률 어쩌고 따지는게 너무 어거지 계산방법 아닌가?'라고 생각했는데 지금 와서 느끼는건 '기업에선 능력에 따라 프로젝트 분배를 어떻게 하느냐에 따라 업무 효율이 크게 차이가 나겠구나' 라는 것을 느꼈다.</font></div><div><font color=\"#ffffff\">&nbsp;그리고 과거에도 그랬지만 요즘들어 새로운 기술들이 마구마구 생겨나는 상황에서 당연히 새로운 기술은 항상 파악하고 좋은 기술은 수용해야 한다는 입장이지만, 이 과정에서 모두가 납득할만한 설명을 하지 않고 독단적으로 도입하게되면 나 뿐만 아닌 같은 혹은 다른 팀들에게 큰 피해가 갈 수 있겠다는 느낌을 크게 받았다. 그렇다고 꽉막힌 흥선대원군 같은 마인드는 지양하고, 수용하되 그 것을 좋은지 나쁜지 판단하는 능력을 크게 키우면 판단 과정에서 오고가는 대화를 통해 더 큰 지식을 얻을 수 있을 것 같다.</font></div><div><font color=\"#ffffff\"><br></font></div><div><font color=\"#ffffff\">이후엔 라이엇 게임즈 회사 소개를 하셨다.</font></div><div><br></div><div>그리고 엔지니어님께서 현재 담당하고 계신 업무(PC방 IP사업, 계정, 한국 한정 채팅필터링 등을 수행하신다고 하신다.)를 소개하셨다.</div><div><br></div><div><div>번외로 AI가 소프트웨어 엔지니어들을 대체할 수 있을까? 라는 질문을 던지시곤 답변으로</div><div><font color=\"#7bd88f\">\"잘 모르겠다. 잘 하면 대체될 것 같다.&nbsp;앞서 설명한 대로 엔지니어링에 필요한 문제는 언제든 발생하고, 인간이 항상 가장먼저 직면하기에&nbsp;</font><span style=\"color: rgb(123, 216, 143);\">소프트웨어 엔지니어에 집중하지말고 엔지니어가 되도록 노력하라</span><font color=\"#7bd88f\">\"</font> 라고 답변해주시면서 마지막 질의 응답으로 넘어갔다.</div></div><div><br></div><div style=\"text-align: center;\">질의 응답</div><div style=\"text-align: center;\"><br></div><div>질문1. 트래픽 스파이크(오픈런 문화 등과 같은)에 대응한 경험</div><div><font color=\"#7bd88f\">ㄴ 대규모 트래픽엔 항상 메시지 큐를 서비스 앞에 박아놓고 처리하는게 일반적(큐에 박아놓으면 처리는 보장해주니까) 가상화 환경(쿠버네티스)에서 자동적으로 CPU 사용량이 커지면 스케일업을 자동으로 시켜준다. 순서가 상관없는 서비스라 퀄리티를 중요시 하고, 설예매같은 순서가 중요한 시스템은 처리가 느려지는걸 감안해야한다.</font></div><div><br></div><div>질문2. 현장에서 보기에 시스템을 건드는 주니어 개발자가 놓치는 실수</div><div><font color=\"#7bd88f\">ㄴ 주니어 개발자는 인증서 실수가 잦다.</font></div><div><font color=\"#7bd88f\">ㄴ 오버 엔지니어링을 항상 하지않도록 MVP를 강조(엣지 케이스 관리를 항상 잘 해줘야한다. 그렇다고 수 많은 엣지 케이스 처리는 오버 엔지니어링이다!)</font></div><div><font color=\"#7bd88f\">+) 처리 불가능한 지속적인 에러가 발생하는걸 모니터링 했을 때 부터 문제에 대한 엔지니어링 시작한다.</font></div><div><br></div><div>질문3. 개발자는 항상 바쁜가요? 주니어 개발자와 시니어 개발자의 차이</div><div><font color=\"#7bd88f\">ㄴ 개발자는 항상 바쁘다 에러 레터 항상 오고, 오퍼레이터의 요구사항이 많은데 치명적인(장애 관련) 에러는 필수로 들어줘야한다.</font></div><div><font color=\"#7bd88f\">ㄴ 주니어 개발자는 시니어 혹은 더 높은 사람과 협업하여 하나의 프로젝트 수행가능한 사람을 정의한다.</font></div><div><font color=\"#7bd88f\">ㄴ 시니어 개발자는 혼자서 1~3개 프로젝트를 수행가능한 사람을 정의한다.</font></div><div><br></div><div>기술적인 부분은 프레임워크를 잘 다루면 좋긴 하지만 개발을 잘 배우려는 의지와 지식(엔지니어링 배경지식을 통한 문제 정의력의 차이)</div><div><br></div><div>질문4. 주니어 엔지니어 입사 시 배우는게 느려도 시키는걸 잘하는 사람 vs 커뮤니케이션 이슈가 있어도 알아서 대응을 잘하는 사람</div><div><font color=\"#7bd88f\">ㄴ 후자를 선호한다. 근데 시키는걸 잘하는게 잘하는 것의 척도는 아니다. 정석적인 테크닉이 고정되면 1번이 맞지만 항상 새로운 기술과 관점이 나오는 직종이라 어떠한 방식에 대한 질문을 계속 해야한다. 그래서 태클 걸어주시는 후자와 같은 사람이 좋은 개발자다.</font></div><div><br></div><div>질문5. 번외 느낌이지만 게임 클라이언트와 아트팀 협업 잘되는지</div><div><font color=\"#7bd88f\">ㄴ 잘된다. 게임팀은 미국에 있다보니 미국과 협업이 자주 이루어진다. 특히 신작 게임 출시 시 해당 관련 협업이 자주 이루어진다.</font></div><div><br></div><div>질문6. 개발자에서 승진하여 파트 매니저가 되기 전 해당 직무 능력을 어떻게 향상시키는지</div><div><font color=\"#7bd88f\">ㄴ 한국은 매니저가 되라 라는 느낌으로 기르는 방식을 선호하긴 한데 라이엇은 경영부분과 개발부분을 별개의 파트로 분리하여서 답하기 곤란하지만, 관리 경영인으로서의 소양은 개발팀에서 얻어가는게 아닌 개인적으로 키워나감&nbsp;</font></div><div><br></div><div>교수님질문. 시니어와 주니어 간 문제정의 능력으로 인한 코딩 에이전트(AI) 사용법이 차이나듯 시니어가 코딩 에이전트 사용 시 생산성 차이</div><div><font color=\"#7bd88f\">ㄴ 지표는 없지만 생산성이 대략 3배 차이난다. 테스트 시 테스트 커버리지(테스트 코드 80%) 제출 시 통과하는 과정이 있는데 테스트 코드 짜는 시간을 AI가 대신해주니 확 줄어들었다. 그리고 프롬프트 작성 시 무턱대고 짜라고 하는게 아니라 적당한 컨텍스트를 제공하고 명령하여 답변을 얻어간다.</font></div><div><br></div><div>교수님질문2. 주니어에서 시작하는 취업시작인데 라이엇에서 주니어를 뽑을 때 어떤 기준으로 뽑는지</div><div><font color=\"#7bd88f\">ㄴ 주니어 기준을 못정해서 어떤 기준으로 뽑을지 몰라서 모든 게임회사가 채용을 적게하거나 못하는 과정이다. 그래서 좋은 기준이 생기면 많이 뽑을 거 같다.</font></div><div><font color=\"#7bd88f\">개인적인 의견이지만 AI 역량은 기본이고, 엔지니어링 적인 사고를 하는것이 가장 중요한데 이걸 표출과 검증을 어떻게 뽑을지를 몰라서 뽑기가 힘들지만&nbsp;</font></div><div><br></div><div>교수님질문3. 당장 다음주 취업준비를 한다고 하면 개발직군 취업 기준 어떤 조건을 가장 중요하게 보는지</div><div><font color=\"#7bd88f\">ㄴ 공기업, 대기업 SI 기준 : 자격증 필수</font></div><div><font color=\"#7bd88f\">ㄴ 사기업 혹은 게임회사 : 자격증은 거리가 멀고, 국가과제에 참여할 경우 자격증을 요구할 순 있음, 리트코드 프로그래머스, 백준 잘하면 코테는 걱정없다 아직 프로그래밍 능력을 검증하는 과정이 코테밖에 없는거 같다.</font></div><div><font color=\"#7bd88f\">ㄴ 스타트업 : 프로젝트 경험이 녹아든 포트폴리오가 가장 중요하다(좋은 퀄리티 보단 기능)</font></div></div><div><font color=\"#7bd88f\"><br></font></div><div><font color=\"#ffffff\">&nbsp;이렇게 질의 응답이 끝나고 강연이 마무리되었다.</font></div><div><font color=\"#ffffff\">게임 개발자로 나아가는 입장에서 박무동 엔지니어님께서 말씀하신 방향성을 듣고 오히려 방황하려는 나 자신에게 어떤 방향으로 나아가면 좋을지와 잘 나아가고 있다는 확신을 가질 수 있게된 좋은 강연이였다. </font><font color=\"#a0a0b8\">(이런 느낌을 진작 받을 수 있게 작년에 들었어야 했는데;;;)</font></div>","createdAt":"2025-11-25T05:39:20.949Z"}]};
+    window.__STATIC_ROUTE__ = {"type":"post","id":"post_example"};
+  </script>
+  
+  <script src="main.js"></script>
+</body>
+</html>
